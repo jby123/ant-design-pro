@@ -3,16 +3,28 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+
 
 jobs:
-
-  build:
-
-    runs-on: windows-latest
-
+  build-and-deploy:
+    runs-on: ubuntu-latest # 运行环境，告诉它运行在什么环境
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      # 第一步：下载源码（CI/CD拉取代码到自己的本地）
+      - name: Checkout
+        uses: actions/checkout@master # 切换到 master 分支
+
+      # 第二步：添加node环境，不可缺失
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+
+      # 第三步：打包构建
+      - name: Build
+        run: yarn install && yarn build
+        
+      # 第四步：部署到服务器
+      - name: ssh deploy
+        uses: easingthemes/ssh-deploy@v2.1.6
+        env:
+          TEST_ENV: pwd && ls
+#           SOURCE: 'webView/'
+#           TARGET: '/usr/web/html/blog'
